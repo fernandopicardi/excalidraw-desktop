@@ -17,16 +17,16 @@ function createWindow() {
       enableRemoteModule: false,
       preload: path.join(__dirname, 'preload.js')
     },
-    icon: path.join(__dirname, '../assets/icon.png'),
+    // icon: path.join(__dirname, '../assets/icon.svg'),
     titleBarStyle: 'default',
     show: false
   });
 
   // Load the app
-  const startUrl = isDev 
-    ? 'http://localhost:5173' 
+  const startUrl = isDev
+    ? 'http://localhost:5173'
     : `file://${path.join(__dirname, '../build/index.html')}`;
-  
+
   mainWindow.loadURL(startUrl);
 
   // Show window when ready
@@ -87,7 +87,7 @@ function createMenu() {
                 { name: 'All Files', extensions: ['*'] }
               ]
             });
-            
+
             if (!result.canceled) {
               mainWindow.webContents.send('menu-open', result.filePaths[0]);
             }

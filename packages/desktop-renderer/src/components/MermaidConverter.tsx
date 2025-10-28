@@ -36,7 +36,7 @@ const MermaidConverter: React.FC<MermaidConverterProps> = ({ onConvert, onClose 
           fontSize: '16px'
         }
       });
-      
+
       setPreview(elements);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse Mermaid diagram');
@@ -63,7 +63,7 @@ const MermaidConverter: React.FC<MermaidConverterProps> = ({ onConvert, onClose 
           <h2>Import Mermaid Diagram</h2>
           <button className="close-button" onClick={onClose}>×</button>
         </div>
-        
+
         <div className="mermaid-converter-content">
           <div className="input-section">
             <label htmlFor="mermaid-code">Mermaid Code:</label>
@@ -74,13 +74,13 @@ const MermaidConverter: React.FC<MermaidConverterProps> = ({ onConvert, onClose 
               placeholder="Enter your Mermaid diagram code here..."
               rows={10}
             />
-            
+
             <div className="button-group">
               <button onClick={handleExample} disabled={isLoading}>
                 Load Example
               </button>
-              <button 
-                onClick={handleConvert} 
+              <button
+                onClick={handleConvert}
                 disabled={isLoading || !mermaidCode.trim()}
                 className="convert-button"
               >
@@ -100,7 +100,7 @@ const MermaidConverter: React.FC<MermaidConverterProps> = ({ onConvert, onClose 
               <h3>Preview ({preview.length} elements)</h3>
               <div className="preview-info">
                 <p>Elements will be added to your canvas</p>
-                <button 
+                <button
                   onClick={handleInsert}
                   className="insert-button"
                 >

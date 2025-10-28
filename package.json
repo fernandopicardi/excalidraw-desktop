@@ -29,6 +29,8 @@
     "rimraf": "^5.0.0",
     "wait-on": "^7.2.0"
   },
+  "author": "fernandopicardi <fernandopicardi@gmail.com>",
+  "license": "MIT",
   "build": {
     "appId": "com.excalidraw.desktop",
     "productName": "Excalidraw Desktop",
@@ -46,14 +48,13 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "ia32"]
+          "arch": ["x64"]
         },
         {
           "target": "portable",
-          "arch": ["x64", "ia32"]
+          "arch": ["x64"]
         }
-      ],
-      "icon": "assets/icon.ico"
+      ]
     },
     "nsis": {
       "oneClick": false,
