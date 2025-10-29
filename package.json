@@ -11,7 +11,8 @@
     "src"
   ],
   "scripts": {
-    "dev": "concurrently \"yarn workspace @excalidraw/desktop-renderer dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "dev": "yarn build && electron .",
+    "dev:hot": "concurrently \"yarn workspace @excalidraw/desktop-renderer dev\" \"wait-on http://localhost:5173 && electron .\"",
     "build": "yarn workspace @excalidraw/desktop-renderer build",
     "build:electron": "yarn build && electron-builder",
     "pack:portable": "yarn build && electron-packager . --platform=win32 --arch=x64 --out=dist/portable --overwrite",

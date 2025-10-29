@@ -23,13 +23,13 @@ function createWindow() {
   });
 
   // Load the app
-  const startUrl = isDev 
-    ? 'http://localhost:5173' 
+  const startUrl = isDev
+    ? 'http://localhost:5173'
     : `file://${path.join(__dirname, '../build/index.html')}`;
-  
+
   console.log('Loading URL:', startUrl);
   console.log('File exists:', require('fs').existsSync(path.join(__dirname, '../build/index.html')));
-  
+
   mainWindow.loadURL(startUrl).catch(err => {
     console.error('Failed to load URL:', err);
     // Fallback to a simple HTML page

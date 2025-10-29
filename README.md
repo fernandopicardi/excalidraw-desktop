@@ -94,13 +94,16 @@ cd excalidraw-desktop
 # 2. Instalar dependências
 yarn install
 
-# 3. Modo desenvolvimento
+# 3. Modo desenvolvimento (build + electron)
 yarn dev
 
-# 4. Build para produção
+# 4. Modo desenvolvimento com hot reload (localhost + electron)
+yarn dev:hot
+
+# 5. Build para produção
 yarn build
 
-# 5. Criar instalador
+# 6. Criar instalador Windows
 yarn dist
 ```
 
@@ -108,7 +111,8 @@ yarn dist
 
 | Comando | Descrição | Uso |
 |---------|-----------|-----|
-| `yarn dev` | Modo desenvolvimento | Desenvolvimento ativo |
+| `yarn dev` | Modo desenvolvimento | Build + Electron (produção) |
+| `yarn dev:hot` | Desenvolvimento com hot reload | localhost + Electron |
 | `yarn build` | Build do renderer | Compilar React |
 | `yarn start` | Executar Electron | Teste local |
 | `yarn dist` | Criar instalador | Distribuição |
