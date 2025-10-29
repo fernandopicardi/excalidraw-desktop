@@ -10,7 +10,7 @@ export const saveToFile = (data: ExcalidrawFileData, filename: string) => {
   const jsonData = JSON.stringify(data, null, 2);
   const blob = new Blob([jsonData], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  
+
   const link = document.createElement('a');
   link.href = url;
   link.download = filename.endsWith('.excalidraw') ? filename : `${filename}.excalidraw`;
@@ -23,7 +23,7 @@ export const saveToFile = (data: ExcalidrawFileData, filename: string) => {
 export const loadFromFile = (file: File): Promise<ExcalidrawFileData> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    
+
     reader.onload = (event) => {
       try {
         const data = JSON.parse(event.target?.result as string);
@@ -32,11 +32,11 @@ export const loadFromFile = (file: File): Promise<ExcalidrawFileData> => {
         reject(new Error('Invalid file format'));
       }
     };
-    
+
     reader.onerror = () => {
       reject(new Error('Failed to read file'));
     };
-    
+
     reader.readAsText(file);
   });
 };
@@ -53,7 +53,7 @@ export const exportToPNG = (canvas: HTMLCanvasElement, filename: string) => {
 export const exportToSVG = (svgString: string, filename: string) => {
   const blob = new Blob([svgString], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
-  
+
   const link = document.createElement('a');
   link.href = url;
   link.download = `${filename}.svg`;

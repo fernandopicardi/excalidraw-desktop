@@ -31,13 +31,13 @@ const DesktopMenu: React.FC<DesktopMenuProps> = ({
           Save {hasUnsavedChanges && '*'}
         </button>
       </div>
-      
+
       <div className="menu-group">
         <span className="file-name">
           {fileName}{hasUnsavedChanges && '*'}
         </span>
       </div>
-      
+
       <div className="menu-group">
         <button onClick={onImportMermaid} className="menu-button mermaid-button">
           Import Mermaid

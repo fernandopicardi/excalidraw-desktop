@@ -19,7 +19,7 @@ const ExcalidrawDesktop: React.FC<ExcalidrawDesktopProps> = () => {
   const [isMermaidModalOpen, setIsMermaidModalOpen] = useState(false);
   const [currentFileName, setCurrentFileName] = useState<string>('Untitled');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  
+
   const excalidrawRef = useRef<any>(null);
   const electronAPI = useElectronAPI();
 
@@ -123,7 +123,7 @@ const ExcalidrawDesktop: React.FC<ExcalidrawDesktopProps> = () => {
 
   return (
     <div className="excalidraw-desktop">
-      <DesktopMenu 
+      <DesktopMenu
         onImportMermaid={() => setIsMermaidModalOpen(true)}
         onNew={handleNew}
         onSave={handleSave}

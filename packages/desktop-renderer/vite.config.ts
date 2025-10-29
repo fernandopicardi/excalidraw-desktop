@@ -5,6 +5,7 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [react()],
   root: '.',
+  base: './', // This is crucial for Electron!
   build: {
     outDir: '../../build',
     emptyOutDir: true,
