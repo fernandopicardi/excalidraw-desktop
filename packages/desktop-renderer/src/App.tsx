@@ -3,43 +3,69 @@ import { Excalidraw } from '@excalidraw/excalidraw';
 import { useElectronAPI } from './hooks/useElectronAPI';
 import './styles/App.css';
 
+interface PendingFile {
+  filePath: string;
+  data: any;
+}
+
 const ExcalidrawDesktop: React.FC = () => {
   const [currentFileName, setCurrentFileName] = useState('Untitled');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const excalidrawRef = useRef<any>(null);
   const currentFilePathRef = useRef<string | null>(null);
+  const pendingFileRef = useRef<PendingFile | null>(null);
   const electronAPI = useElectronAPI();
 
-  // Load file data into the Excalidraw scene
-  const loadFileContent = useCallback((filePath: string, content: string) => {
-    console.log('[ExcalidrawDesktop] loadFileContent called, path:', filePath, 'content length:', content?.length);
+  // Apply file data to the Excalidraw scene (only when API is ready)
+  const applyFileToScene = useCallback((filePath: string, data: any) => {
+    const api = excalidrawRef.current;
+    if (!api) {
+      // API not ready yet — store for later
+      console.log('[ExcalidrawDesktop] API not ready, queuing file for later');
+      pendingFileRef.current = { filePath, data };
+      return;
+    }
+
+    console.log('[ExcalidrawDesktop] Applying', data.elements?.length, 'elements to scene');
+    api.updateScene({
+      elements: data.elements || [],
+    });
+    if (data.files) {
+      api.addFiles(Object.values(data.files));
+    }
+    api.scrollToContent(data.elements || [], { fitToContent: true });
+
+    currentFilePathRef.current = filePath;
+    setCurrentFileName(
+      filePath.split('/').pop()?.split('\\').pop() || 'Untitled'
+    );
+    setHasUnsavedChanges(false);
+    pendingFileRef.current = null;
+  }, []);
+
+  // Handle file-opened event from main process
+  const handleFileOpened = useCallback((filePath: string, content: string) => {
+    console.log('[ExcalidrawDesktop] file-opened received, path:', filePath, 'length:', content?.length);
     try {
       const data = JSON.parse(content);
-      console.log('[ExcalidrawDesktop] Parsed OK, elements:', data.elements?.length, 'api ready:', !!excalidrawRef.current);
-      const api = excalidrawRef.current;
-      if (api) {
-        api.updateScene({
-          elements: data.elements || [],
-        });
-        if (data.files) {
-          api.addFiles(Object.values(data.files));
-        }
-        api.scrollToContent(data.elements || [], { fitToContent: true });
-        console.log('[ExcalidrawDesktop] Scene updated successfully');
-      } else {
-        console.error('[ExcalidrawDesktop] Excalidraw API ref is null!');
-      }
-      currentFilePathRef.current = filePath;
-      setCurrentFileName(
-        filePath.split('/').pop()?.split('\\').pop() || 'Untitled'
-      );
-      setHasUnsavedChanges(false);
+      applyFileToScene(filePath, data);
     } catch (err) {
-      console.error('[ExcalidrawDesktop] Failed to load file:', err);
-      alert('Failed to parse file. It may not be a valid Excalidraw file.');
+      console.error('[ExcalidrawDesktop] Failed to parse file:', err);
+      alert('Failed to open file. It may not be a valid Excalidraw file.');
     }
-  }, []);
+  }, [applyFileToScene]);
+
+  // Excalidraw ref callback — fires when the component mounts
+  const excalidrawRefCallback = useCallback((api: any) => {
+    excalidrawRef.current = api;
+    if (api && pendingFileRef.current) {
+      // A file was received before the API was ready — apply it now
+      console.log('[ExcalidrawDesktop] API ready, applying pending file');
+      const { filePath, data } = pendingFileRef.current;
+      applyFileToScene(filePath, data);
+    }
+  }, [applyFileToScene]);
 
   const handleNew = useCallback(() => {
     if (hasUnsavedChanges) {
@@ -75,7 +101,6 @@ const ExcalidrawDesktop: React.FC = () => {
 
     let filePath = currentFilePathRef.current;
     if (!filePath) {
-      // No file path yet — behave like Save As
       const result = await electronAPI.showSaveDialog();
       if (result.canceled || !result.filePath) return;
       filePath = result.filePath;
@@ -124,9 +149,7 @@ const ExcalidrawDesktop: React.FC = () => {
         api.setOpenDialog({ name: 'ttd', tab: 'mermaid' });
       }
     });
-
-    // File opened: main process read the file and sends content here
-    electronAPI.onFileOpened(loadFileContent);
+    electronAPI.onFileOpened(handleFileOpened);
 
     return () => {
       electronAPI.removeAllListeners('menu-new');
@@ -135,7 +158,7 @@ const ExcalidrawDesktop: React.FC = () => {
       electronAPI.removeAllListeners('menu-import-mermaid');
       electronAPI.removeAllListeners('file-opened');
     };
-  }, [electronAPI, handleNew, handleSave, handleSaveAs, loadFileContent]);
+  }, [electronAPI, handleNew, handleSave, handleSaveAs, handleFileOpened]);
 
   const handleChange = useCallback(() => {
     if (!hasUnsavedChanges) {
@@ -147,7 +170,7 @@ const ExcalidrawDesktop: React.FC = () => {
     <div className="excalidraw-desktop">
       <div className="excalidraw-container">
         <Excalidraw
-          ref={excalidrawRef}
+          ref={excalidrawRefCallback}
           initialData={{
             appState: {
               viewBackgroundColor: '#ffffff',
