@@ -4,18 +4,31 @@
 [![Electron](https://img.shields.io/badge/Electron-28.3.3-blue.svg)](https://electronjs.org/)
 [![React](https://img.shields.io/badge/React-18.2.0-blue.svg)](https://reactjs.org/)
 
-A native Windows desktop application wrapping [Excalidraw](https://excalidraw.com) with built-in Mermaid diagram support, packaged with Electron.
+A cross-platform desktop application wrapping [Excalidraw](https://excalidraw.com) with built-in Mermaid diagram support, packaged with Electron for Windows, macOS, and Linux.
 
 ## Download
 
-Pre-built Windows executables are available on the [Releases](https://github.com/fernandopicardi/excalidraw-desktop/releases) page:
+Pre-built binaries are available on the [Releases](https://github.com/fernandopicardi/excalidraw-desktop/releases) page:
 
-| File | Size | Description |
-|------|------|-------------|
-| `Excalidraw-Desktop-1.0.0-Setup.exe` | ~74 MB | Windows installer — installs to Program Files, creates Start Menu and desktop shortcuts |
-| `Excalidraw-Desktop-1.0.0-Portable.exe` | ~74 MB | Portable version — runs directly, no installation required |
+### Windows
+| File | Description |
+|------|-------------|
+| `Excalidraw-Desktop-Setup-x.x.x.exe` | Installer — Program Files, Start Menu and desktop shortcuts |
+| `Excalidraw-Desktop-x.x.x.exe` | Portable — runs directly, no installation required |
 
-**Requirements:** Windows 10/11 (64-bit)
+### macOS
+| File | Description |
+|------|-------------|
+| `Excalidraw-Desktop-x.x.x.dmg` | Disk image — drag to Applications |
+| `Excalidraw-Desktop-x.x.x-mac.zip` | Zipped .app bundle |
+
+### Linux
+| File | Description |
+|------|-------------|
+| `Excalidraw-Desktop-x.x.x.AppImage` | AppImage — runs on most distros, no install needed |
+| `excalidraw-desktop_x.x.x_amd64.deb` | Debian/Ubuntu package |
+
+> macOS and Linux builds are generated automatically via GitHub Actions. See [Building Executables](#building-executables) for details.
 
 ## Features
 
@@ -36,7 +49,7 @@ Convert Mermaid diagram code into editable Excalidraw elements using the **built
 4. Preview renders automatically as you type
 5. Click **Insert** to add the diagram to your canvas
 
-Alternatively, use **Ctrl+M** or **File > Import Mermaid** from the Electron menu.
+Alternatively, use **Ctrl+M** (or **Cmd+M** on macOS) or **File > Import Mermaid** from the application menu.
 
 **Supported diagram types:**
 
@@ -55,14 +68,19 @@ Alternatively, use **Ctrl+M** or **File > Import Mermaid** from the Electron men
 > **Full** support means the diagram is converted into native Excalidraw elements (rectangles, arrows, text) that you can edit individually. **Image fallback** means the diagram is embedded as an SVG image on the canvas.
 
 ### Desktop Integration
-- Native Windows application menu (File, Edit, View, Window)
+- Native application menu on all platforms (File, Edit, View, Window)
 - File operations: New, Open, Save, Save As
 - Unsaved changes detection with confirmation prompt
-- Excalidraw logo as the application icon (window, taskbar, installer)
+- Excalidraw logo as the application icon (window, taskbar/dock, installer)
+- macOS: proper Cmd shortcuts, dock integration, dmg installer
+- Linux: AppImage and .deb packages
 
 ## Keyboard Shortcuts
 
-### Electron Menu Shortcuts
+### Application Menu Shortcuts
+
+> On macOS, `Ctrl` is replaced by `Cmd`.
+
 | Shortcut | Action |
 |----------|--------|
 | `Ctrl+N` | New file |
@@ -114,13 +132,15 @@ excalidraw-desktop/
 │       ├── vite.config.ts    # Vite config (base: './' for Electron)
 │       └── package.json
 ├── assets/
-│   ├── icon.ico              # App icon (256x256, Excalidraw logo)
-│   ├── icon-256.png          # PNG source for ICO
+│   ├── icon.ico              # Windows app icon
+│   ├── icon.icns             # macOS app icon
+│   ├── icon-256.png          # Linux app icon / PNG source
 │   └── icon.svg              # SVG source
+├── .github/
+│   └── workflows/
+│       └── build.yml         # CI: builds for Win/Mac/Linux on tag push
 ├── build/                    # Vite build output (loaded by Electron)
-├── dist/                     # Packaged executables
-│   ├── Excalidraw Desktop Setup 1.0.0.exe
-│   └── Excalidraw Desktop 1.0.0.exe
+├── dist/                     # Packaged executables (platform-specific)
 └── package.json              # Root config with electron-builder settings
 ```
 
@@ -142,7 +162,7 @@ excalidraw-desktop/
 
 - Node.js 18.x - 22.x
 - Yarn 1.22.22
-- Windows 10/11 (for building Windows executables)
+- Windows 10/11, macOS 11+, or Ubuntu 20.04+ (builds for current platform)
 
 ### Setup
 
@@ -166,27 +186,32 @@ yarn install
 ### Building Executables
 
 ```bash
-# Build both installer and portable
+# Build for current platform
 yarn dist
 
-# Output:
-#   dist/Excalidraw Desktop Setup 1.0.0.exe  (NSIS installer)
-#   dist/Excalidraw Desktop 1.0.0.exe        (Portable)
+# Output (varies by platform):
+#   Windows: dist/Excalidraw Desktop Setup 1.0.0.exe + portable
+#   macOS:   dist/Excalidraw Desktop-1.0.0.dmg + .zip
+#   Linux:   dist/Excalidraw Desktop-1.0.0.AppImage + .deb
 ```
 
+> **Cross-platform builds:** You can only build for your current OS natively. To build for all platforms, push a version tag (`git tag v1.x.x && git push --tags`) and the GitHub Actions workflow will build for Windows, macOS (x64 + arm64), and Linux automatically.
+
 The `electron-builder` configuration in `package.json` produces:
-- **NSIS installer**: Allows choosing install directory, creates desktop and Start Menu shortcuts
-- **Portable**: Self-extracting executable, runs from temp directory
+- **Windows**: NSIS installer + portable executable
+- **macOS**: DMG disk image + zip archive (universal: Intel + Apple Silicon)
+- **Linux**: AppImage + .deb package
 
 ## Differences from Excalidraw Web
 
 | Feature | Web (excalidraw.com) | Desktop |
 |---------|---------------------|---------|
+| Platforms | Any browser | Windows, macOS, Linux |
 | Collaboration | Real-time with others | Single user (offline) |
 | File storage | Browser localStorage / cloud | Local filesystem (.excalidraw files) |
-| Mermaid | Same built-in tool | Same built-in tool + Ctrl+M shortcut |
-| Menu | Excalidraw UI only | Native Windows menu + Excalidraw UI |
-| Installation | None (browser) | Installer or portable .exe |
+| Mermaid | Same built-in tool | Same built-in tool + Ctrl/Cmd+M shortcut |
+| Menu | Excalidraw UI only | Native OS menu + Excalidraw UI |
+| Installation | None (browser) | Installer, DMG, AppImage, or portable |
 | AI Text-to-Diagram | Available | Not available (requires API key) |
 
 ## Contributing
