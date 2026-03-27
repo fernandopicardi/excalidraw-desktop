@@ -15,15 +15,29 @@ const ExcalidrawDesktop: React.FC = () => {
   const excalidrawRef = useRef<any>(null);
   const currentFilePathRef = useRef<string | null>(null);
   const pendingFileRef = useRef<PendingFile | null>(null);
+  const apiReadyRef = useRef(false);
   const electronAPI = useElectronAPI();
 
   // Apply file data to the Excalidraw scene (only when API is ready)
   const applyFileToScene = useCallback((filePath: string, data: any) => {
     const api = excalidrawRef.current;
     if (!api) {
-      // API not ready yet — store for later
-      console.log('[ExcalidrawDesktop] API not ready, queuing file for later');
+      // API not ready yet — store and poll until ready
+      console.log('[ExcalidrawDesktop] API not ready, queuing file and polling...');
       pendingFileRef.current = { filePath, data };
+      const interval = setInterval(() => {
+        if (excalidrawRef.current) {
+          clearInterval(interval);
+          console.log('[ExcalidrawDesktop] API became ready, applying queued file');
+          const pending = pendingFileRef.current;
+          if (pending) {
+            pendingFileRef.current = null;
+            applyFileToScene(pending.filePath, pending.data);
+          }
+        }
+      }, 200);
+      // Safety: stop polling after 10 seconds
+      setTimeout(() => clearInterval(interval), 10000);
       return;
     }
 
@@ -41,7 +55,6 @@ const ExcalidrawDesktop: React.FC = () => {
       filePath.split('/').pop()?.split('\\').pop() || 'Untitled'
     );
     setHasUnsavedChanges(false);
-    pendingFileRef.current = null;
   }, []);
 
   // Handle file-opened event from main process
@@ -58,14 +71,9 @@ const ExcalidrawDesktop: React.FC = () => {
 
   // Excalidraw ref callback — fires when the component mounts
   const excalidrawRefCallback = useCallback((api: any) => {
+    console.log('[ExcalidrawDesktop] ref callback fired, api:', !!api);
     excalidrawRef.current = api;
-    if (api && pendingFileRef.current) {
-      // A file was received before the API was ready — apply it now
-      console.log('[ExcalidrawDesktop] API ready, applying pending file');
-      const { filePath, data } = pendingFileRef.current;
-      applyFileToScene(filePath, data);
-    }
-  }, [applyFileToScene]);
+  }, []);
 
   const handleNew = useCallback(() => {
     if (hasUnsavedChanges) {
@@ -160,7 +168,13 @@ const ExcalidrawDesktop: React.FC = () => {
     };
   }, [electronAPI, handleNew, handleSave, handleSaveAs, handleFileOpened]);
 
-  const handleChange = useCallback(() => {
+  const handleChange = useCallback((...args: any[]) => {
+    // The first onChange call confirms Excalidraw is fully mounted
+    // Use the excalidrawAPI from the ref callback or detect it here
+    if (!apiReadyRef.current && excalidrawRef.current) {
+      apiReadyRef.current = true;
+      console.log('[ExcalidrawDesktop] API confirmed ready via onChange');
+    }
     if (!hasUnsavedChanges) {
       setHasUnsavedChanges(true);
     }
