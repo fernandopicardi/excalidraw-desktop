@@ -88,18 +88,8 @@ function createMenu() {
         {
           label: 'Open',
           accelerator: 'CmdOrCtrl+O',
-          click: async () => {
-            const result = await dialog.showOpenDialog(mainWindow, {
-              properties: ['openFile'],
-              filters: [
-                { name: 'Excalidraw Files', extensions: ['excalidraw'] },
-                { name: 'All Files', extensions: ['*'] }
-              ]
-            });
-
-            if (!result.canceled) {
-              mainWindow.webContents.send('menu-open', result.filePaths[0]);
-            }
+          click: () => {
+            mainWindow.webContents.send('menu-open');
           }
         },
         {
