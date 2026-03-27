@@ -1,23 +1,23 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Expose protected methods that allow the renderer process to use
-// the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {
   // App info
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 
-  // File operations
+  // File operations (IPC to main process)
   showSaveDialog: () => ipcRenderer.invoke('show-save-dialog'),
-  showOpenDialog: () => ipcRenderer.invoke('show-open-dialog'),
-  readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
   writeFile: (filePath, content) => ipcRenderer.invoke('write-file', filePath, content),
 
-  // Menu events
-  onMenuNew: (callback) => ipcRenderer.on('menu-new', callback),
-  onMenuOpen: (callback) => ipcRenderer.on('menu-open', callback),
-  onMenuSave: (callback) => ipcRenderer.on('menu-save', callback),
-  onMenuSaveAs: (callback) => ipcRenderer.on('menu-save-as', callback),
-  onMenuImportMermaid: (callback) => ipcRenderer.on('menu-import-mermaid', callback),
+  // Menu events (main → renderer)
+  onMenuNew: (callback) => ipcRenderer.on('menu-new', () => callback()),
+  onMenuSave: (callback) => ipcRenderer.on('menu-save', () => callback()),
+  onMenuSaveAs: (callback) => ipcRenderer.on('menu-save-as', () => callback()),
+  onMenuImportMermaid: (callback) => ipcRenderer.on('menu-import-mermaid', () => callback()),
+
+  // File opened event (main opens dialog/reads file, sends content here)
+  onFileOpened: (callback) => ipcRenderer.on('file-opened', (event, filePath, content) => {
+    callback(filePath, content);
+  }),
 
   // Remove listeners
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel)

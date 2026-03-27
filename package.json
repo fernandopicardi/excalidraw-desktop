@@ -47,6 +47,15 @@
       "!node_modules/**/test/**/*",
       "!node_modules/**/tests/**/*"
     ],
+    "fileAssociations": [
+      {
+        "ext": "excalidraw",
+        "name": "Excalidraw File",
+        "description": "Excalidraw Drawing",
+        "mimeType": "application/json",
+        "role": "Editor"
+      }
+    ],
     "win": {
       "icon": "assets/icon.ico",
       "target": [

@@ -8,32 +8,12 @@ const ExcalidrawDesktop: React.FC = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const excalidrawRef = useRef<any>(null);
+  const currentFilePathRef = useRef<string | null>(null);
   const electronAPI = useElectronAPI();
 
-  const handleNew = useCallback(() => {
-    if (hasUnsavedChanges) {
-      if (!confirm('You have unsaved changes. Are you sure you want to create a new file?')) {
-        return;
-      }
-    }
-    const api = excalidrawRef.current;
-    if (api) {
-      api.resetScene();
-    }
-    setCurrentFileName('Untitled');
-    setHasUnsavedChanges(false);
-  }, [hasUnsavedChanges]);
-
-  const currentFilePathRef = useRef<string | null>(null);
-
-  const handleOpen = useCallback(async () => {
-    if (!electronAPI) return;
-    const result = await electronAPI.showOpenDialog();
-    if (result.canceled || !result.filePaths?.[0]) return;
-
-    const filePath = result.filePaths[0];
+  // Load file data into the Excalidraw scene
+  const loadFileContent = useCallback((filePath: string, content: string) => {
     try {
-      const content = await electronAPI.readFile(filePath);
       const data = JSON.parse(content);
       const api = excalidrawRef.current;
       if (api) {
@@ -43,16 +23,32 @@ const ExcalidrawDesktop: React.FC = () => {
         if (data.files) {
           api.addFiles(Object.values(data.files));
         }
+        api.scrollToContent(data.elements || [], { fitToContent: true });
       }
       currentFilePathRef.current = filePath;
       setCurrentFileName(
         filePath.split('/').pop()?.split('\\').pop() || 'Untitled'
       );
       setHasUnsavedChanges(false);
-    } catch (error) {
-      alert('Failed to open file: ' + error);
+    } catch {
+      alert('Failed to parse file. It may not be a valid Excalidraw file.');
     }
-  }, [electronAPI]);
+  }, []);
+
+  const handleNew = useCallback(() => {
+    if (hasUnsavedChanges) {
+      if (!confirm('You have unsaved changes. Create a new file?')) {
+        return;
+      }
+    }
+    const api = excalidrawRef.current;
+    if (api) {
+      api.resetScene();
+    }
+    currentFilePathRef.current = null;
+    setCurrentFileName('Untitled');
+    setHasUnsavedChanges(false);
+  }, [hasUnsavedChanges]);
 
   const getSceneData = useCallback(() => {
     const api = excalidrawRef.current;
@@ -73,6 +69,7 @@ const ExcalidrawDesktop: React.FC = () => {
 
     let filePath = currentFilePathRef.current;
     if (!filePath) {
+      // No file path yet — behave like Save As
       const result = await electronAPI.showSaveDialog();
       if (result.canceled || !result.filePath) return;
       filePath = result.filePath;
@@ -108,29 +105,31 @@ const ExcalidrawDesktop: React.FC = () => {
     setHasUnsavedChanges(false);
   }, [electronAPI, getSceneData]);
 
+  // Register Electron menu event handlers
   useEffect(() => {
     if (!electronAPI) return;
 
     electronAPI.onMenuNew(handleNew);
-    electronAPI.onMenuOpen(handleOpen);
     electronAPI.onMenuSave(handleSave);
     electronAPI.onMenuSaveAs(handleSaveAs);
     electronAPI.onMenuImportMermaid(() => {
-      // Trigger the built-in Mermaid dialog via Excalidraw API
       const api = excalidrawRef.current;
       if (api) {
         api.setOpenDialog({ name: 'ttd', tab: 'mermaid' });
       }
     });
 
+    // File opened: main process read the file and sends content here
+    electronAPI.onFileOpened(loadFileContent);
+
     return () => {
       electronAPI.removeAllListeners('menu-new');
-      electronAPI.removeAllListeners('menu-open');
       electronAPI.removeAllListeners('menu-save');
       electronAPI.removeAllListeners('menu-save-as');
       electronAPI.removeAllListeners('menu-import-mermaid');
+      electronAPI.removeAllListeners('file-opened');
     };
-  }, [electronAPI, handleNew, handleOpen, handleSave, handleSaveAs]);
+  }, [electronAPI, handleNew, handleSave, handleSaveAs, loadFileContent]);
 
   const handleChange = useCallback(() => {
     if (!hasUnsavedChanges) {
