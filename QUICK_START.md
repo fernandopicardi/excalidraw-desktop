@@ -1,80 +1,50 @@
-# 🚀 Excalidraw Desktop - Quick Start
+# Quick Start
 
-## ⚡ **Execução Rápida**
+## For Users
 
-### **1. Desenvolvimento**
+Download from [Releases](https://github.com/fernandopicardi/excalidraw-desktop/releases):
+
+- **Setup**: `Excalidraw-Desktop-1.0.0-Setup.exe` — installs with shortcuts
+- **Portable**: `Excalidraw-Desktop-1.0.0-Portable.exe` — runs directly
+
+## For Developers
+
 ```bash
-# Instalar dependências
+git clone https://github.com/fernandopicardi/excalidraw-desktop.git
+cd excalidraw-desktop
 yarn install
-
-# Modo desenvolvimento (build + electron)
-yarn dev
-
-# Modo desenvolvimento com hot reload
-yarn dev:hot
+yarn dev          # Build + launch Electron
+yarn dev:hot      # Vite dev server + Electron (hot reload)
+yarn dist         # Create installer and portable .exe
 ```
 
-### **2. Produção**
-```bash
-# Build do renderer
-yarn build
+## Using Mermaid Diagrams
 
-# Criar executáveis Windows
-yarn dist
+1. Click the **More Tools** button (`...`) in the toolbar
+2. Select **Mermaid to Excalidraw**
+3. Type or paste Mermaid code — preview updates automatically
+4. Click **Insert** to add to canvas
+
+Or press **Ctrl+M** to open the Mermaid dialog directly.
+
+### Example
+
+```mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Do something]
+    B -->|No| D[Do something else]
+    C --> E[End]
+    D --> E
 ```
 
-### **3. Testar Executáveis**
-```bash
-# Instalador Windows
-./dist/Excalidraw Desktop Setup 1.0.0.exe
+## File Operations
 
-# Versão Portátil
-./dist/Excalidraw Desktop 1.0.0.exe
-```
-
-## 🎯 **Funcionalidades Principais**
-
-### **Excalidraw Completo**
-- ✅ Canvas infinito com todas as ferramentas
-- ✅ Estilo hand-drawn único
-- ✅ Tema claro/escuro automático
-- ✅ Zoom, pan, undo/redo
-
-### **Integração Mermaid**
-- ✅ Conversão em tempo real
-- ✅ Suporte a Flowchart, Sequence, Class, State, Gantt
-- ✅ Preview antes de inserir
-- ✅ Editor integrado
-
-### **Desktop Features**
-- ✅ Menu nativo Windows
-- ✅ Atalhos de teclado (Ctrl+N, Ctrl+S, Ctrl+M)
-- ✅ Salvar/Abrir arquivos .excalidraw
-- ✅ Drag & drop de arquivos
-
-## 🔧 **Comandos Úteis**
-
-| Comando | Descrição |
-|---------|-----------|
-| `yarn dev` | Desenvolvimento (build + electron) |
-| `yarn dev:hot` | Desenvolvimento com hot reload |
-| `yarn build` | Build do renderer |
-| `yarn start` | Executar Electron |
-| `yarn dist` | Criar executáveis |
-| `yarn clean` | Limpar arquivos temporários |
-
-## 📋 **Requisitos**
-
-- **Node.js**: 18.x ou superior
-- **Yarn**: 1.22.22
-- **Windows**: 10/11 (64-bit)
-
-## 🎉 **Status**
-
-- ✅ **Executáveis**: Funcionando perfeitamente
-- ✅ **Tela Branca**: Resolvido
-- ✅ **Assets**: Carregando corretamente
-- ✅ **Funcionalidades**: Todas implementadas
-- ✅ **Documentação**: Completa
-
-**🚀 Pronto para usar!**
+| Action | Shortcut |
+|--------|----------|
+| New | Ctrl+N |
+| Open | Ctrl+O |
+| Save | Ctrl+S |
+| Save As | Ctrl+Shift+S |
+| Mermaid | Ctrl+M |
+| Quit | Ctrl+Q |
