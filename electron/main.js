@@ -178,6 +178,17 @@ ipcMain.handle('get-app-version', () => {
   return app.getVersion();
 });
 
+ipcMain.handle('read-file', async (event, filePath) => {
+  const fs = require('fs');
+  return fs.readFileSync(filePath, 'utf-8');
+});
+
+ipcMain.handle('write-file', async (event, filePath, content) => {
+  const fs = require('fs');
+  fs.writeFileSync(filePath, content, 'utf-8');
+  return true;
+});
+
 ipcMain.handle('show-save-dialog', async () => {
   const result = await dialog.showSaveDialog(mainWindow, {
     filters: [

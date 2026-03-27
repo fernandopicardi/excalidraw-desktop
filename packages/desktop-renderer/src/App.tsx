@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Excalidraw } from '@excalidraw/excalidraw';
 import { useElectronAPI } from './hooks/useElectronAPI';
-import { saveToFile, loadFromFile } from './utils/fileUtils';
 import './styles/App.css';
 
 const ExcalidrawDesktop: React.FC = () => {
@@ -25,23 +24,29 @@ const ExcalidrawDesktop: React.FC = () => {
     setHasUnsavedChanges(false);
   }, [hasUnsavedChanges]);
 
+  const currentFilePathRef = useRef<string | null>(null);
+
   const handleOpen = useCallback(async () => {
     if (!electronAPI) return;
     const result = await electronAPI.showOpenDialog();
     if (result.canceled || !result.filePaths?.[0]) return;
 
+    const filePath = result.filePaths[0];
     try {
-      const file = new File([], result.filePaths[0]);
-      const data = await loadFromFile(file);
+      const content = await electronAPI.readFile(filePath);
+      const data = JSON.parse(content);
       const api = excalidrawRef.current;
       if (api) {
         api.updateScene({
-          elements: data.elements,
+          elements: data.elements || [],
         });
-        api.addFiles(Object.values(data.files || {}));
+        if (data.files) {
+          api.addFiles(Object.values(data.files));
+        }
       }
+      currentFilePathRef.current = filePath;
       setCurrentFileName(
-        result.filePaths[0].split('/').pop()?.split('\\').pop() || 'Untitled'
+        filePath.split('/').pop()?.split('\\').pop() || 'Untitled'
       );
       setHasUnsavedChanges(false);
     } catch (error) {
@@ -49,36 +54,59 @@ const ExcalidrawDesktop: React.FC = () => {
     }
   }, [electronAPI]);
 
-  const handleSave = useCallback(() => {
+  const getSceneData = useCallback(() => {
     const api = excalidrawRef.current;
-    if (!api) return;
-    const data = {
+    if (!api) return null;
+    return {
+      type: 'excalidraw',
+      version: 2,
       elements: api.getSceneElements(),
       appState: api.getAppState(),
       files: api.getFiles(),
     };
-    saveToFile(data, currentFileName);
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    if (!electronAPI) return;
+    const data = getSceneData();
+    if (!data) return;
+
+    let filePath = currentFilePathRef.current;
+    if (!filePath) {
+      const result = await electronAPI.showSaveDialog();
+      if (result.canceled || !result.filePath) return;
+      filePath = result.filePath;
+      if (!filePath.endsWith('.excalidraw')) {
+        filePath += '.excalidraw';
+      }
+      currentFilePathRef.current = filePath;
+      setCurrentFileName(
+        filePath.split('/').pop()?.split('\\').pop() || 'Untitled'
+      );
+    }
+    await electronAPI.writeFile(filePath, JSON.stringify(data, null, 2));
     setHasUnsavedChanges(false);
-  }, [currentFileName]);
+  }, [electronAPI, getSceneData]);
 
   const handleSaveAs = useCallback(async () => {
     if (!electronAPI) return;
     const result = await electronAPI.showSaveDialog();
     if (result.canceled || !result.filePath) return;
 
-    const api = excalidrawRef.current;
-    if (!api) return;
-    const data = {
-      elements: api.getSceneElements(),
-      appState: api.getAppState(),
-      files: api.getFiles(),
-    };
-    saveToFile(data, result.filePath);
+    const data = getSceneData();
+    if (!data) return;
+
+    let filePath = result.filePath;
+    if (!filePath.endsWith('.excalidraw')) {
+      filePath += '.excalidraw';
+    }
+    await electronAPI.writeFile(filePath, JSON.stringify(data, null, 2));
+    currentFilePathRef.current = filePath;
     setCurrentFileName(
-      result.filePath.split('/').pop()?.split('\\').pop() || 'Untitled'
+      filePath.split('/').pop()?.split('\\').pop() || 'Untitled'
     );
     setHasUnsavedChanges(false);
-  }, [electronAPI]);
+  }, [electronAPI, getSceneData]);
 
   useEffect(() => {
     if (!electronAPI) return;

@@ -5,6 +5,8 @@ interface ElectronAPI {
   getAppVersion: () => Promise<string>;
   showSaveDialog: () => Promise<{ canceled: boolean; filePath?: string }>;
   showOpenDialog: () => Promise<{ canceled: boolean; filePaths?: string[] }>;
+  readFile: (filePath: string) => Promise<string>;
+  writeFile: (filePath: string, content: string) => Promise<boolean>;
   onMenuNew: (callback: () => void) => void;
   onMenuOpen: (callback: (event: any, filePath: string) => void) => void;
   onMenuSave: (callback: () => void) => void;

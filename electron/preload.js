@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // File operations
   showSaveDialog: () => ipcRenderer.invoke('show-save-dialog'),
   showOpenDialog: () => ipcRenderer.invoke('show-open-dialog'),
+  readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
+  writeFile: (filePath, content) => ipcRenderer.invoke('write-file', filePath, content),
 
   // Menu events
   onMenuNew: (callback) => ipcRenderer.on('menu-new', callback),
