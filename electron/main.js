@@ -17,9 +17,12 @@ if (fileArg && fs.existsSync(fileArg)) {
 function openFileInRenderer(filePath) {
   if (!mainWindow || !filePath) return;
   try {
+    console.log('[Main] Reading file:', filePath);
     const content = fs.readFileSync(filePath, 'utf-8');
+    console.log('[Main] File read OK, length:', content.length, '- sending to renderer');
     mainWindow.webContents.send('file-opened', filePath, content);
   } catch (err) {
+    console.error('[Main] Failed to read file:', err);
     dialog.showErrorBox('Failed to open file', err.message);
   }
 }
@@ -43,22 +46,30 @@ function createWindow() {
     show: false
   });
 
-  const startUrl = isDev
-    ? 'http://localhost:5173'
-    : `file://${path.join(__dirname, '../build/index.html')}`;
-
-  mainWindow.loadURL(startUrl).catch(err => {
-    console.error('Failed to load URL:', err);
-    mainWindow.loadURL(`data:text/html,<h1>Loading Error</h1><p>${err.message}</p>`);
-  });
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:5173').catch(err => {
+      console.error('Failed to load dev URL:', err);
+    });
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '../build/index.html')).catch(err => {
+      console.error('Failed to load app:', err);
+    });
+  }
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    // If launched with a file argument, open it after the app is ready
+  });
+
+  // Wait for renderer to fully load before opening a file
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('[Main] Renderer finished loading');
     if (fileToOpenOnReady) {
-      // Small delay to ensure renderer is fully initialized
-      setTimeout(() => openFileInRenderer(fileToOpenOnReady), 500);
-      fileToOpenOnReady = null;
+      // Give React time to mount and register listeners
+      setTimeout(() => {
+        console.log('[Main] Opening file from launch arg:', fileToOpenOnReady);
+        openFileInRenderer(fileToOpenOnReady);
+        fileToOpenOnReady = null;
+      }, 1500);
     }
   });
 

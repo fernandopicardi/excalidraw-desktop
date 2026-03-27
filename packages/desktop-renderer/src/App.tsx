@@ -13,8 +13,10 @@ const ExcalidrawDesktop: React.FC = () => {
 
   // Load file data into the Excalidraw scene
   const loadFileContent = useCallback((filePath: string, content: string) => {
+    console.log('[ExcalidrawDesktop] loadFileContent called, path:', filePath, 'content length:', content?.length);
     try {
       const data = JSON.parse(content);
+      console.log('[ExcalidrawDesktop] Parsed OK, elements:', data.elements?.length, 'api ready:', !!excalidrawRef.current);
       const api = excalidrawRef.current;
       if (api) {
         api.updateScene({
@@ -24,13 +26,17 @@ const ExcalidrawDesktop: React.FC = () => {
           api.addFiles(Object.values(data.files));
         }
         api.scrollToContent(data.elements || [], { fitToContent: true });
+        console.log('[ExcalidrawDesktop] Scene updated successfully');
+      } else {
+        console.error('[ExcalidrawDesktop] Excalidraw API ref is null!');
       }
       currentFilePathRef.current = filePath;
       setCurrentFileName(
         filePath.split('/').pop()?.split('\\').pop() || 'Untitled'
       );
       setHasUnsavedChanges(false);
-    } catch {
+    } catch (err) {
+      console.error('[ExcalidrawDesktop] Failed to load file:', err);
       alert('Failed to parse file. It may not be a valid Excalidraw file.');
     }
   }, []);
