@@ -1,9 +1,7 @@
-import { ExcalidrawElement, AppState, BinaryFiles } from '@excalidraw/excalidraw/types/types';
-
 export interface ExcalidrawFileData {
-  elements: ExcalidrawElement[];
-  appState: Partial<AppState>;
-  files: BinaryFiles;
+  elements: any[];
+  appState: Record<string, any>;
+  files: Record<string, any>;
 }
 
 export const saveToFile = (data: ExcalidrawFileData, filename: string) => {

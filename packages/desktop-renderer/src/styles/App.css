@@ -16,28 +16,3 @@
 .excalidraw-container .excalidraw {
   height: 100% !important;
 }
-
-.excalidraw-container .excalidraw .App {
-  height: 100% !important;
-}
-
-.excalidraw-container .excalidraw .App .Island {
-  height: 100% !important;
-}
-
-/* Ensure proper layout */
-.excalidraw-container .excalidraw .App .Island .App-toolbar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-}
-
-.excalidraw-container .excalidraw .App .Island .canvas-container {
-  position: absolute;
-  top: 48px; /* Height of our desktop menu */
-  left: 0;
-  right: 0;
-  bottom: 0;
-}

@@ -38,14 +38,17 @@
     "directories": {
       "output": "dist"
     },
+    "icon": "assets/icon.ico",
     "files": [
       "build/**/*",
       "electron/**/*",
+      "assets/**/*",
       "node_modules/**/*",
       "!node_modules/**/test/**/*",
       "!node_modules/**/tests/**/*"
     ],
     "win": {
+      "icon": "assets/icon.ico",
       "target": [
         {
           "target": "nsis",
